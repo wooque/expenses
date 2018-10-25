@@ -1,0 +1,12 @@
+* {
+    font-family: sans-serif
+}
+
+.hidden {
+    display: none
+}
+
+.chart-container {
+    height: 400px;
+    max-width: 800px;
+}
