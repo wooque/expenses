@@ -3,7 +3,7 @@ import sqlite3
 from calendar import monthrange
 from datetime import datetime
 
-from flask import Flask, g, render_template
+from flask import Flask, g, render_template, request
 from dateutil.relativedelta import relativedelta
 
 
@@ -21,11 +21,15 @@ def get_db():
 
 def query_db(query, args=(), one=False):
     cur = get_db().execute(query, args)
-    if one:
-        rv = cur.fetchone()
-        rv = rv[0] if rv else None
+    if 'insert' in query:
+        cur.connection.commit()
+        rv = None
     else:
-        rv = cur.fetchall()
+        if one:
+            rv = cur.fetchone()
+            rv = rv[0] if rv else None
+        else:
+            rv = cur.fetchall()
     cur.close()
     return rv
 
@@ -101,13 +105,12 @@ def estimates_by_type(previous_data, current_data, today):
         prev = previous_data[t]
         curr = current_data[t]
         
-        if curr >= prev:
-            estimates[t] = curr
-        else:
-            e = int(curr / today.day * days)
-            if e < 0.66 * prev:
-                e = prev
-            estimates[t] = e
+        e = int(curr / today.day * days)
+        if e < 0.8 * prev: 
+            e = prev
+        if e > 1.2 * prev:
+            e = curr
+        estimates[t] = e
 
     return estimates
 
@@ -117,7 +120,6 @@ def stats():
     today = datetime.today()
     
     current = monthly(today)
-    days = monthrange(today.year, today.month)[1]
         
     current_daily = daily(today, fill_missing=False)
     current_by_type_data = by_type(today)
@@ -136,7 +138,7 @@ def stats():
     types = ','.join([t.title() for t in sorted(expense_types())])
     
     return render_template(
-        "index.html",
+        "stats.html",
         current=int(current),
         estimate=int(estimate), 
         previous=int(previous),
@@ -147,6 +149,33 @@ def stats():
         current_by_type=values_to_str(current_by_type_data),
         estimates_by_type=values_to_str(estimates_by_type_data),
     )
+
+
+@app.route("/types")
+def types():
+    data = expense_types()
+    data = [dict(value=d, tokens=[d]) for d in data]
+    return json.dumps(data)
+
+
+@app.route("/names")
+def names():
+    data = query_db("select distinct name from expenses")
+    data = [dict(value=d[0], tokens=[d[0].split()]) for d in data]
+    return json.dumps(data)
+
+
+@app.route("/new", methods=['GET', 'POST'])
+def new():
+    if request.method == 'POST':
+        query_db(
+            "insert into expenses(date, type, name, amount) values (?, ?, ?, ?)", 
+            (
+                request.form['date'], request.form['type'],
+                request.form['name'], request.form['price'],
+            )
+        )
+    return render_template('new.html', today=datetime.today().strftime('%Y-%m-%d'))
 
 if __name__ == "__main__":
     app.run()

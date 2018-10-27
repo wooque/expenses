@@ -4,34 +4,13 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expenses</title>
-    <link rel="stylesheet" href="/static/style.css"> 
-    <script src="/static/Chart.bundle.min.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/jquery-3.3.1.min.js"></script>
+    {% block head %}
+    {% endblock %}
 </head>
 <body>
-    <h1>Total</h1>
-    <p id="current" class="hidden">{{ current }}</p>
-    <p id="previous" class="hidden">{{ previous }}</p>
-    <p id="estimate" class="hidden">{{ estimate }}</p>
-    <div class="chart-container">
-        <canvas id="totalChart"></canvas>
-    </div>
-
-    <h1>By type</h1>
-    <p id="current_by_type" class="hidden">{{ current_by_type }}</p>
-    <p id="previous_by_type" class="hidden">{{ previous_by_type }}</p>
-    <p id="estimates_by_type" class="hidden">{{ estimates_by_type }}</p>
-    <p id="types" class="hidden">{{ types }}</p>
-    <div class="chart-container">
-        <canvas id="byTypeChart"></canvas>
-    </div>
-
-    <h1>Daily</h1>
-    <p id="current_daily" class="hidden">{{ current_daily }}</p>
-    <p id="previous_daily" class="hidden">{{ previous_daily }}</p>
-    <div class="chart-container">
-        <canvas id="dailyChart" width="400" height="200"></canvas>
-    </div>
-
-    <script src="/static/script.js"></script>
+    {% block content %}
+    {% endblock %}
 </body>
 </html>
