@@ -21,7 +21,7 @@ def get_db():
 
 def query_db(query, args=(), one=False):
     cur = get_db().execute(query, args)
-    if 'insert' in query:
+    if 'insert' in query or 'delete' in query:
         cur.connection.commit()
         rv = None
     else:
@@ -165,7 +165,24 @@ def names():
     return json.dumps(data)
 
 
-@app.route("/new", methods=['GET', 'POST'])
+def render_table():
+    today = datetime.today()
+    month = request.args.get('month')
+    if month == 'prev':
+        today = today.replace(day=1) - relativedelta(months=1)
+
+    table = query_db(
+        "select * from expenses where date like ? order by id desc", 
+        (today.strftime('%Y-%m-%%'),),
+    )
+    return render_template(
+        'table.html', 
+        today=today.strftime('%Y-%m-%d'),
+        table=table,
+    )
+
+
+@app.route("/table", methods=['GET', 'POST'])
 def new():
     if request.method == 'POST':
         query_db(
@@ -175,7 +192,13 @@ def new():
                 request.form['name'], request.form['price'],
             )
         )
-    return render_template('new.html', today=datetime.today().strftime('%Y-%m-%d'))
+    return render_table()
+
+
+@app.route("/delete")
+def delete():
+    query_db("delete from expenses where id=?", (request.args['id'],))
+    return render_table()
 
 if __name__ == "__main__":
     app.run()

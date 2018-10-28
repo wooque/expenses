@@ -10,3 +10,19 @@
     height: 400px;
     max-width: 800px;
 }
+
+.tt-menu {
+    background: lightgoldenrodyellow;
+    width: 100%;
+}
+
+.tt-suggestion {
+    padding: 5px;
+}
+
+table, th, td {
+    border: 1px solid lightgray;
+    border-collapse: collapse;
+    padding: 5px;
+    text-align: left;
+}

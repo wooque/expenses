@@ -1,0 +1,39 @@
+{% extends "index.html" %}
+{% block content %}
+<p>
+    <a href="/">Home</a>
+    <a href="/table?month=prev">Previous month</a>
+    <a href="/table">Current month</a>
+</p>
+<p>
+<form action='/table' method="POST">
+    <input name="date" type="date" value="{{ today }}">
+    <input class="type" name="type" type="text" placeholder="Type">
+    <input class="name" type="text" name="name" placeholder="Name">
+    <input type="number" name="price" placeholder="Price">
+    <input type="submit" value="Add">
+</form>
+</p>
+<p>
+<table>
+<tr>
+    <th>Date</th>
+    <th>Type</th>
+    <th>Name</th>
+    <th>Price</th>
+    <th></th>
+</tr>
+{% for row in table %}
+<tr>
+    <td>{{ row.date }}</td>
+    <td>{{ row.type }}</td>
+    <td>{{ row.name }}</td>
+    <td>{{ row.amount }}</td>
+    <td><a href='/delete?id={{ row.id }}'>Delete</a></td>
+</tr>
+{% endfor %}
+</table>
+</p>
+<script src="/static/typeahead.bundle.min.js"></script>
+<script src="/static/table.js"></script>
+{% endblock %}
