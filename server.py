@@ -110,7 +110,7 @@ def estimates_by_type(previous_data, current_data, today):
         if e < 0.8 * prev:
             e = prev
         if e > 1.2 * prev:
-            e = curr
+            e = max(prev, curr)
         estimates[t] = e
 
     return estimates
