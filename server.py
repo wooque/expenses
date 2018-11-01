@@ -154,14 +154,28 @@ def stats():
 
 @app.route("/types")
 def types():
-    data = expense_types()
-    data = [dict(value=d, tokens=[d]) for d in data]
+    sql = "select distinct type from expenses"
+    params = ()
+    query = request.args.get('q')
+    if query:
+        sql += " where type like ?"
+        params = (query + '%',)
+
+    data = query_db(sql, params)
+    data = [dict(value=d[0], tokens=d[:1]) for d in data]
     return json.dumps(data)
 
 
 @app.route("/names")
 def names():
-    data = query_db("select distinct name from expenses")
+    sql = "select distinct name from expenses"
+    params = ()
+    query = request.args.get('q')
+    if query:
+        sql += " where name like ?"
+        params = (query + '%',)
+
+    data = query_db(sql, params)
     data = [dict(value=d[0], tokens=[d[0].split()]) for d in data]
     return json.dumps(data)
 
