@@ -42,18 +42,19 @@ def close_connection(exception):
 
 
 def monthly(dt):
-    return query_db(
+    mntly = query_db(
         "select sum(amount) from expenses where date like ?",
         (dt.strftime("%Y-%m-%%"),),
         one=True,
     )
+    return mntly or 0
 
 
 def daily(dt, fill_missing=True):
     data = query_db(
-        """select strftime('%d', date), sum(amount) 
-            from expenses 
-            where date like ? 
+        """select strftime('%d', date), sum(amount)
+            from expenses
+            where date like ?
             group by strftime('%d', date)
             order by date""",
         (dt.strftime("%Y-%m-%%"),),
@@ -61,11 +62,11 @@ def daily(dt, fill_missing=True):
     data = dict([(int(e[0]), e[1]) for e in data])
     for day in range(1, monthrange(dt.year, dt.month)[1] + 1):
         if not fill_missing and day > dt.day:
-            break 
-        
+            break
+
         if day not in data:
             data[day] = 0
-    
+
     return data
 
 
@@ -73,7 +74,7 @@ def values_to_str(dict_):
     values = []
     for day in sorted(dict_.keys()):
         values.append(str(dict_[day]))
-    
+
     return ','.join(values)
 
 
@@ -84,9 +85,9 @@ def expense_types():
 
 def by_type(dt):
     data = query_db(
-        """select type, sum(amount) 
-            from expenses 
-            where date like ? 
+        """select type, sum(amount)
+            from expenses
+            where date like ?
             group by type""",
         (dt.strftime("%Y-%m-%%"),),
     )
@@ -104,9 +105,9 @@ def estimates_by_type(previous_data, current_data, today):
     for t in previous_data.keys():
         prev = previous_data[t]
         curr = current_data[t]
-        
+
         e = int(curr / today.day * days)
-        if e < 0.8 * prev: 
+        if e < 0.8 * prev:
             e = prev
         if e > 1.2 * prev:
             e = curr
@@ -118,12 +119,12 @@ def estimates_by_type(previous_data, current_data, today):
 @app.route("/")
 def stats():
     today = datetime.today()
-    
+
     current = monthly(today)
-        
+
     current_daily = daily(today, fill_missing=False)
     current_by_type_data = by_type(today)
-    
+
     previous_month = today.replace(day=1) - relativedelta(months=1)
     previous = monthly(previous_month)
 
@@ -136,11 +137,11 @@ def stats():
     estimate = sum(estimates_by_type_data.values())
 
     types = ','.join([t.title() for t in sorted(expense_types())])
-    
+
     return render_template(
         "stats.html",
         current=int(current),
-        estimate=int(estimate), 
+        estimate=int(estimate),
         previous=int(previous),
         current_daily=values_to_str(current_daily),
         previous_daily=values_to_str(previous_daily),
@@ -172,11 +173,11 @@ def render_table():
         today = today.replace(day=1) - relativedelta(months=1)
 
     table = query_db(
-        "select * from expenses where date like ? order by id desc", 
+        "select * from expenses where date like ? order by id desc",
         (today.strftime('%Y-%m-%%'),),
     )
     return render_template(
-        'table.html', 
+        'table.html',
         today=today.strftime('%Y-%m-%d'),
         table=table,
     )
@@ -186,7 +187,7 @@ def render_table():
 def new():
     if request.method == 'POST':
         query_db(
-            "insert into expenses(date, type, name, amount) values (?, ?, ?, ?)", 
+            "insert into expenses(date, type, name, amount) values (?, ?, ?, ?)",
             (
                 request.form['date'], request.form['type'],
                 request.form['name'], request.form['price'],
